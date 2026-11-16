@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>两遍都没看见 · 两个人各查一遍错，还剩几处没找到</title>
+<meta name="description" content="一份稿子请两个人各自查一遍错，把两张勘误单贴进来：从两人都找到的重合有多少，估出两人都没看见的大概还剩几处、几成把握不超过几处、还要再查几遍。">
+<style>
+  :root{--bg:#f4f1ea;--paper:#fffdf8;--card:#faf7f0;--ink:#24211c;--ink2:#575148;--mut:#8b8478;--line:#ddd6c8;--rule:#ebe5d9;--red:#c0392b;--a:#2f6fb0;--b:#c2742a;--both:#5b8c4a;--hi:#fff3d6;--key:#8a3b12}
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);font:16px/1.6 -apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1000px;margin:0 auto;padding:22px 14px 72px}
+  h1{font-size:32px;line-height:1.2;margin:0 0 6px;letter-spacing:.04em}
+  .sub{color:var(--ink2);margin:0;font-size:15.5px}
+  .muted{color:var(--mut);font-size:13.5px}
+  .hide{display:none !important}
+  button,input,textarea{font:inherit}
+  button{cursor:pointer}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 4px}
+  .chip{background:var(--paper);border:1px solid var(--line);border-radius:999px;padding:5px 12px;font-size:13.5px;color:var(--ink2)}
+  .chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
+  .panel{background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:16px 18px;margin:14px 0;min-width:0}
+  .h2{font-size:15px;font-weight:700;margin:0 0 10px;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+  /* 勘误单 */
+  .mode{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden;margin-bottom:10px}
+  .mode button{border:0;background:var(--card);padding:5px 14px;font-size:14px;color:var(--ink2)}
+  .mode button[aria-pressed="true"]{background:var(--ink);color:#fff}
+  .what{display:flex;gap:8px;align-items:center;margin-bottom:10px;font-size:14px;color:var(--ink2)}
+  .what input{flex:1;min-width:0;padding:5px 8px;border:1px solid var(--line);border-radius:4px;background:#fff}
+  .sheets{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px}
+  .sheet{border:1px solid var(--line);border-radius:4px;background:#fff;min-width:0}
+  .sheet .top{display:flex;align-items:center;gap:6px;padding:8px 10px;border-bottom:2px solid var(--a);background:var(--paper)}
+  .sheet.b .top{border-bottom-color:var(--b)}
+  .sheet .top input{width:7em;min-width:0;padding:2px 6px;border:1px solid var(--line);border-radius:3px;font-weight:700}
+  .sheet .top .c{margin-left:auto;font-size:13px;color:var(--mut);white-space:nowrap}
+  .sheet textarea{display:block;width:100%;min-height:300px;border:0;padding:0 10px;line-height:28px;font-size:14.5px;resize:vertical;background:repeating-linear-gradient(transparent 0 27px,var(--rule) 27px 28px);background-attachment:local;color:var(--ink);outline:none}
+  .cnt{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 16px}
+  .cnt label{display:flex;flex-direction:column;gap:3px;font-size:14px;color:var(--ink2)}
+  .cnt input,.form input{width:100%;min-width:0;padding:5px 7px;border:1px solid var(--line);border-radius:4px;text-align:right;background:#fff}
+  .form{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 18px}
+  .form label{display:flex;flex-direction:column;gap:3px;font-size:14px;color:var(--ink2)}
+  .form small{color:var(--mut);font-size:12.5px;line-height:1.45}
+  .form .in{display:flex;align-items:center;gap:6px} .form .u{white-space:nowrap;font-size:13.5px;color:var(--mut)}
+  .bad{border-color:var(--red) !important;background:#fdecea !important}
+  .err{background:#fdecea;border:1px solid #e6b0aa;border-radius:6px;padding:10px 14px;color:var(--red);margin:10px 0}
+  .err ul{margin:4px 0 0;padding-left:20px}
+  /* 结论 */
+  .tot{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:2px 0 12px}
+  .tot div{border:1px solid var(--rule);background:var(--card);border-radius:5px;padding:7px 11px;min-width:0}
+  .tot span{display:block;font-size:12.5px;color:var(--mut)}
+  .tot b{font-size:28px;font-variant-numeric:tabular-nums;line-height:1.25}
+  .tot div.key{background:var(--hi);border-color:#ecd59a} .tot div.key b{color:var(--key)}
+  .tot small{display:block;color:var(--mut);font-size:12px;line-height:1.35}
+  .head{font-size:21px;font-weight:800;line-height:1.45;margin:0 0 6px}
+  .head b{color:var(--key)}
+  .why{color:var(--ink2);margin:0 0 8px;font-size:15px}
+  .warn{background:#fff6e5;border-left:3px solid #d39b2a;padding:6px 10px;font-size:14px;color:#7a5a12;margin:6px 0}
+  .acts{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 2px}
+  .act{background:#fff;border:1px solid #c9b98f;border-radius:5px;padding:6px 12px;font-size:14px;color:var(--key);text-align:left;max-width:100%;overflow-wrap:anywhere}
+  /* 维恩 + 柱 */
+  .viz{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:16px;align-items:start}
+  svg{width:100%;display:block}
+  .legend{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:12.5px;color:var(--mut);margin-top:4px}
+  .legend i{display:inline-block;width:12px;height:12px;vertical-align:-1px;margin-right:5px;border-radius:2px}
+  /* 合并清单 */
+  .merged{list-style:none;margin:0;padding:0;font-size:14.5px}
+  .merged li{display:grid;grid-template-columns:5.6em minmax(0,1fr);gap:8px;padding:5px 0;border-bottom:1px solid var(--rule);overflow-wrap:anywhere}
+  .who{font-size:12px;border-radius:3px;padding:1px 6px;align-self:start;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .who.both{background:#e6f0e0;color:#3d6b2f} .who.a{background:#e3edf8;color:#245a92} .who.b{background:#f8ebdc;color:#8f5017}
+  .near{background:#fffaf0;border:1px dashed #d8c08a;border-radius:5px;padding:8px 12px;margin:0 0 10px;font-size:14px}
+  .near div{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:3px 0;overflow-wrap:anywhere}
+  .near .t{flex:1 1 260px;min-width:0}
+  .btn{background:var(--paper);border:1px solid var(--line);border-radius:5px;padding:6px 12px;font-size:14px;color:var(--ink)}
+  .btn.sm{padding:2px 9px;font-size:13px}
+  .btn.pri{background:var(--ink);border-color:var(--ink);color:#fff}
+  .dl{display:flex;flex-wrap:wrap;gap:8px}
+  .foot{color:var(--mut);font-size:13px;margin-top:22px}
+  .foot li{margin:3px 0}
+  @media (max-width:760px){
+    h1{font-size:27px} .head{font-size:18.5px} .tot b{font-size:23px}
+    .sheets,.viz{grid-template-columns:minmax(0,1fr)}
+    .sheet textarea{min-height:200px}
+    .tot{grid-template-columns:minmax(0,1fr) minmax(0,1fr)} .tot div.key{grid-column:1 / -1;order:-1}
+    .form{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>两遍都没看见</h1>
+  <p class="sub">一份稿子请两个人各自查一遍错。把两张勘误单贴进来：两人都找到的越多，说明错大多已经被看见；重合越少，说明两人都漏了不少。从重合估出两人都没看见的大概还剩几处、要不要再找人查一遍。</p>
+
+  <div class="chips" id="presets"></div>
+  <p class="muted" id="presetNote"></p>
+
+  <section class="panel" id="res">
+    <div class="h2">还剩几处没找到 <span class="muted" id="saveTag"></span></div>
+    <div class="err hide" id="errBox"></div>
+    <div id="okBox">
+      <div class="tot" id="tot"></div>
+      <p class="head" id="headline"></p>
+      <p class="why" id="why"></p>
+      <div class="warn hide" id="warn"></div>
+      <div class="acts" id="acts"></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="h2">两张勘误单 <span class="muted">一行一处；编号、空格、句末标点不影响比对</span></div>
+    <div class="mode" id="mode"><button type="button" id="modeList" data-m="list">贴清单</button><button type="button" id="modeCount" data-m="count">只填处数</button></div>
+    <div class="what">查的是<input id="what" maxlength="40" placeholder="比如：毕业论文第三章"></div>
+    <div class="sheets" id="sheetBox">
+      <div class="sheet a"><div class="top"><input id="nameA" maxlength="12" aria-label="第一个人"><span>找到的</span><span class="c" id="cntA"></span></div><textarea id="listA" spellcheck="false" placeholder="一行写一处错"></textarea></div>
+      <div class="sheet b"><div class="top"><input id="nameB" maxlength="12" aria-label="第二个人"><span>找到的</span><span class="c" id="cntB"></span></div><textarea id="listB" spellcheck="false" placeholder="一行写一处错"></textarea></div>
+    </div>
+    <div class="cnt hide" id="countBox">
+      <label><span id="labA">A 找到几处</span><input id="a" inputmode="numeric"></label>
+      <label><span id="labB">B 找到几处</span><input id="b" inputmode="numeric"></label>
+      <label>两人都找到的<input id="m" inputmode="numeric"></label>
+    </div>
+  </section>
+
+  <section class="panel" id="vizPanel">
+    <div class="h2">重合了多少</div>
+    <div class="viz">
+      <div><svg id="venn" viewBox="0 0 420 340" role="img" aria-label="两人找到的错的重合图"></svg></div>
+      <div><svg id="bars" viewBox="0 0 520 260" role="img" aria-label="还剩几处的可能性"></svg>
+        <div class="legend"><span><i style="background:#2f6fb0"></i>每个柱：正好还剩这么多处的可能</span><span><i style="background:#8a3b12"></i>你要的把握落在这里</span></div></div>
+    </div>
+  </section>
+
+  <section class="panel" id="listPanel">
+    <div class="h2">合起来的勘误单 <span class="muted" id="mergedNote"></span></div>
+    <div class="near hide" id="nearBox"></div>
+    <ul class="merged" id="merged"></ul>
+  </section>
+
+  <section class="panel">
+    <div class="h2">口径</div>
+    <div class="form">
+      <label>要几成把握<span class="in"><input id="conf" inputmode="numeric"><span class="u">%</span></span><small>50–99；越高，「不超过几处」给得越保守</small></label>
+      <label>能接受平均还剩几处<span class="in"><input id="target" inputmode="numeric"><span class="u">处</span></span><small>0–100；用来算还要再查几遍</small></label>
+      <label>最多可能有几处<span class="in"><input id="cap" inputmode="numeric" placeholder="留空自动"><span class="u">处</span></span><small>留空取「已找到×4」与「已找到+30」较大的那个；重合少时结论会跟着它变</small></label>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="h2">带走</div>
+    <div class="dl">
+      <button type="button" class="btn pri" id="dlPng">结果卡 PNG</button>
+      <button type="button" class="btn" id="dlCsv">合并勘误单 CSV</button>
+      <button type="button" class="btn" id="dlMd">文字 Markdown</button>
+      <button type="button" class="btn" id="dlJson">备份 JSON</button>
+      <button type="button" class="btn" id="impJson">导入备份</button>
+      <input type="file" id="impFile" accept=".json,application/json" class="hide">
+      <button type="button" class="btn" id="reset">恢复默认</button>
+    </div>
+    <p class="muted" style="margin:8px 0 0">勘误单只存在这台设备的浏览器里，不上传。</p>
+  </section>
+
+  <div class="foot">
+    <b>怎么算的、没算进去的事</b>
+    <ul>
+      <li>道理和生态学里「标记重捕」数鱼一样：A 找到的当作做了记号，B 找到的里有几成带记号，就当 A 大概看见了几成。默认例子里室友找到 10 处、其中 6 处我也找到了，就当我大概看见了 6 成。</li>
+      <li>「还剩几处」用的是概率分布：总数在「已找到」到「最多可能有几处」之间，先按 1/总数 的先验，再按两人重合的超几何概率逐个总数算出可能性，取中位数和你要的把握对应的分位。另给经典 Chapman 公式 (A+1)(B+1)/(重合+1)−1 作对照，它通常更乐观。</li>
+      <li>前提：两人各查各的、互不商量；每处错对同一个人来说一样好找；查的时候稿子没改。实际里难找的错两个人都容易漏，真实剩余往往比这里估的多；两人一起讨论过再写的单子会让重合偏多、估得偏少。</li>
+      <li>「再查几遍」按两人平均能看见的比例、假设下一个人差不多认真来算，只是粗估。清单比对只认去掉空格和编号后完全一样的说法，说法不同的同一处要你点「算成同一处」。默认数字和勘误内容都是虚构示例。</li>
+    </ul>
+  </div>
+</div>
+<script src="./core.js"></script>
+<script src="./ui.js"></script>
+</body>
+</html>
